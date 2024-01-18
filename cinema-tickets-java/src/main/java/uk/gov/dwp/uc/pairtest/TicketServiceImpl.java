@@ -1,13 +1,10 @@
 package uk.gov.dwp.uc.pairtest;
 
-import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest;
-import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
-
-import java.util.UUID;
-
 import thirdparty.paymentgateway.TicketPaymentService;
 import thirdparty.seatbooking.SeatReservationService;
+import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest;
 import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest.Type;
+import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
 
 public class TicketServiceImpl implements TicketService {
     /**
@@ -35,21 +32,17 @@ public class TicketServiceImpl implements TicketService {
             Type typeOfTicket = ticket.getTicketType();
             int noOfTicket = ticket.getNoOfTickets();
 
-            if (noOfTicket < 1) {
-                throw new InvalidPurchaseException("No Valid Ticket.. Number of ticket should be atleast 1");
-            }
-
             if (typeOfTicket == Type.INFANT){
-                checkTicketNumberRange(noOfTicket);
+                checkTicketNumberRange(noOfTicket, "Infant");
             }
             else if (typeOfTicket == Type.CHILD){
-                if (checkTicketNumberRange(noOfTicket)){
+                if (checkTicketNumberRange(noOfTicket, "Child") && noOfTicket > 0){
                     totalAmountPaymentDue += (noOfTicket * 10);
                     totalSeatsAllocationDue += noOfTicket;
                 }
             }
             else if (typeOfTicket == Type.ADULT) {
-                if (checkTicketNumberRange(noOfTicket)){
+                if (checkTicketNumberRange(noOfTicket, "Adult") && noOfTicket > 0){
                     totalAmountPaymentDue += (noOfTicket * 20);
                     totalSeatsAllocationDue += noOfTicket;
                     adultIsPresent = true;
@@ -59,28 +52,29 @@ public class TicketServiceImpl implements TicketService {
             }
         }
 
+        checkTicketNumberRange(totalSeatsAllocationDue, "total");
+
+        if (totalSeatsAllocationDue < 1) {
+            throw new InvalidPurchaseException("No Valid Ticket.. Number of ticket should be atleast 1");
+        }
+
         if(adultIsPresent){
-            long accountID = generateAccountID();
-            _paymentService.makePayment(accountID, totalAmountPaymentDue);
-            _reservationService.reserveSeat(accountID, totalSeatsAllocationDue);    
+            _paymentService.makePayment(accountId, totalAmountPaymentDue);
+            _reservationService.reserveSeat(accountId, totalSeatsAllocationDue);    
                 
         }else{
             throw new InvalidPurchaseException("Infact or Child tickets are required to have atleast one adult");
         }
     }
 
-    public boolean checkTicketNumberRange (int noOfTicket) {
-        if (noOfTicket > 20){
-            throw new InvalidPurchaseException("Too Many Ticket Number Request .. Number should not be greater than 20");     
+    private boolean checkTicketNumberRange(int noOfTicket, String name) {
+        if (noOfTicket > 20) {
+            if (name.equalsIgnoreCase("total")) {
+                throw new InvalidPurchaseException("Total Number of Ticket is greater than 20 .. Number should not be greater than 20");
+            }
+            throw new InvalidPurchaseException("Too Many " + name + " Ticket Number Request .. Number should not be greater than 20");
         }
         return true;
     }
-
-    public long generateAccountID () {
-        UUID uuid = UUID.randomUUID();
-        long longValue = uuid.getMostSignificantBits();
-        long accountid = longValue & Long.MAX_VALUE;
-        return accountid;
-    }
-
+    
 }

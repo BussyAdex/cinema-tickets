@@ -84,7 +84,7 @@ public class TicketServiceImpl implements TicketService {
         if (adultTicket < 1){
             throw new InvalidPurchaseException("Infact or Child tickets are required to have atleast one adult"); 
         }
-        if (infantTicket > (adultTicket/2)) {
+        if (adultTicket < (infantTicket/2)) {
             throw new InvalidPurchaseException("Number of Infant is more than Adult available .. A maximum of 2 Infant per Adult");
         }
         return true;

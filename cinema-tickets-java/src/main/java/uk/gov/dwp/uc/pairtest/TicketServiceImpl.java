@@ -77,14 +77,14 @@ public class TicketServiceImpl implements TicketService {
     }
     
     private boolean checkValidPurchase (int totalSeatsAllocationDue, int adultTicket, int infantTicket){
-        if (totalSeatsAllocationDue < 1) {
-            throw new InvalidPurchaseException("No Valid Ticket.. Number of ticket should be atleast 1");
-        }
         if (adultTicket < 1){
             throw new InvalidPurchaseException("Infact or Child tickets are required to have atleast one adult"); 
         }
         if (adultTicket < (infantTicket/2)) {
             throw new InvalidPurchaseException("Number of Infant is more than Adult available .. A maximum of 2 Infant per Adult");
+        }
+        if (totalSeatsAllocationDue < 1) {
+            throw new InvalidPurchaseException("No Valid Ticket.. Number of ticket should be atleast 1");
         }
         return true;
     }

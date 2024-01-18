@@ -59,16 +59,12 @@ public class TicketServiceImpl implements TicketService {
 
         checkTicketNumberRange(totalTicketCount, "total");
 
-        if (totalSeatsAllocationDue < 1) {
-            throw new InvalidPurchaseException("No Valid Ticket.. Number of ticket should be atleast 1");
-        }
-
-        if(checkValidPurchase (adultTicket, infantTicket)){
+        if(checkValidPurchase (totalSeatsAllocationDue, adultTicket, infantTicket)){
             _paymentService.makePayment(accountId, totalAmountPaymentDue);
             _reservationService.reserveSeat(accountId, totalSeatsAllocationDue);
         }
         
-        }
+    }
 
     private boolean checkTicketNumberRange(int noOfTicket, String name) {
         if (noOfTicket > 20) {
@@ -80,7 +76,10 @@ public class TicketServiceImpl implements TicketService {
         return true;
     }
     
-    private boolean checkValidPurchase (int adultTicket, int infantTicket){
+    private boolean checkValidPurchase (int totalSeatsAllocationDue, int adultTicket, int infantTicket){
+        if (totalSeatsAllocationDue < 1) {
+            throw new InvalidPurchaseException("No Valid Ticket.. Number of ticket should be atleast 1");
+        }
         if (adultTicket < 1){
             throw new InvalidPurchaseException("Infact or Child tickets are required to have atleast one adult"); 
         }
